@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phòng Huấn luyện viên ⚽</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+  
+  body {
+    background-image: url('https://images.unsplash.com/photo-1522778119026-d647f0596c20?q=80&w=2000&auto=format&fit=crop'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+  }
+
+  /* ===== FORM ĐĂNG NHẬP ===== */
+  .auth-box {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 440px;
+    background: rgba(5, 15, 10, 0.75); 
+    backdrop-filter: blur(15px); 
+    -webkit-backdrop-filter: blur(15px);
+    border: 2px solid #17c964;
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(23, 201, 100, 0.5), inset 0 0 20px rgba(23, 201, 100, 0.2);
+    padding: 35px 30px;
+    margin-top: 20px;
+  }
+
+  .header-logo { text-align: center; margin-bottom: 25px; }
+  .header-logo h1 { font-size: 1.6rem; color: #fff; margin-bottom: 8px; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+  .header-logo p { color: #9ab; font-size: 0.95rem; }
+
+  .auth-tabs {
+    display: flex; gap: 8px; margin-bottom: 25px; 
+    background: rgba(0,0,0,0.5); padding: 6px; border-radius: 12px; 
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .auth-tab {
+    flex: 1; padding: 12px; text-align: center; border-radius: 8px;
+    font-weight: 600; color: #9ab; cursor: pointer; transition: 0.3s;
+    display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem;
+  }
+  .auth-tab.active {
+    background: #17c964; color: #fff; box-shadow: 0 4px 15px rgba(23,201,100,0.4);
+  }
+
+  label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #ccc; display: flex; align-items: center; gap: 6px;}
+  input {
+    width: 100%; padding: 14px; border-radius: 8px; border: 1px solid #444;
+    background: rgba(255,255,255,0.95); font-size: 1rem; margin-bottom: 15px;
+    transition: 0.3s;
+  }
+  input:focus { outline: none; border-color: #17c964; box-shadow: 0 0 10px rgba(23,201,100,0.5); }
+  
+  button {
+    width: 100%; padding: 15px; border-radius: 10px; border: none;
+    background: linear-gradient(135deg, #17c964, #0f9f4a); color: #fff;
+    font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 5px 20px rgba(23,201,100,0.4);
+    margin-top: 10px;
+  }
+  button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(23,201,100,0.6); }
+  
+  /* Nút Google */
+  .btn-google {
+    background: #fff; color: #333; border: 1px solid #ddd; margin-top: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+  .btn-google:hover { background: #f1f1f1; box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+  .btn-google img { width: 20px; height: 20px; }
+
+  .divider { display: flex; align-items: center; text-align: center; color: #888; margin: 20px 0; font-size: 0.85rem; }
+  .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #444; }
+  .divider::before { margin-right: 10px; }
+  .divider::after { margin-left: 10px; }
+
+  .auth-error { color: #ff8a8a; font-size: 0.85rem; margin-bottom: 10px; text-align: center; min-height: 18px; font-weight: 600; }
+  .hidden { display: none !important; }
+
+  /* ===== PHẦN WEB CHÍNH ===== */
+  .app { 
+    display: none; max-width: 860px; width: 100%; padding: 20px; z-index: 10; 
+    background: rgba(5, 10, 7, 0.95); border-radius: 20px; border: 1px solid #17c964;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .app.active { display: block; }
+  
+  .card {
+    background: rgba(15, 25, 20, 0.9); border: 1px solid rgba(23, 201, 100, 0.3);
+    border-radius: 16px; padding: 24px; margin-bottom: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; background: rgba(15, 25, 20, 0.8); padding: 8px; border-radius: 12px; }
+  .tab { flex: 1; padding: 12px; text-align: center; border-radius: 8px; cursor: pointer; font-weight: bold; color: #9ab; transition: 0.3s; }
+  .tab.active { background: #17c964; color: #fff; }
+  
+  .player { display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #17c964; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+  .pinfo { flex: 1; }
+  .overall { font-size: 1.2rem; font-weight: bold; color: #17c964; }
+  .drill-item { display: flex; gap: 10px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; align-items: center; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #17c964; color: #fff; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 99; }
+  .toast.show { opacity: 1; }
+  .toast.error { background: #e5484d; }
+  .user-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: rgba(15, 25, 20, 0.8); border-radius: 12px; margin-bottom: 20px; border: 1px solid #17c964; font-size: 0.95rem; }
+  .btn-ghost { background: #333; color: #fff; border: 1px solid #555; padding: 8px 15px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; width: auto; box-shadow: none; }
+  .btn-ghost:hover { background: #444; transform: none; }
+  .row { display: flex; gap: 10px; }
+  .row > * { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="overlay"></div>
+
+<!-- MÀN HÌNH ĐĂNG NHẬP -->
+<div class="auth-box" id="screen-auth">
+  <div class="header-logo">
+    <h1>Phòng Huấn luyện viên</h1>
+    <p>Đăng nhập để vào phòng HLV</p>
+  </div>
+
+  <div class="auth-tabs">
+    <div class="auth-tab active" data-authtab="login"><span>👤</span> Đăng nhập</div>
+    <div class="auth-tab" data-authtab="register"><span>📝</span> Đăng ký</div>
+  </div>
+
+  <div id="form-login">
+    <label><span>👤</span> Tên đăng nhập</label>
+    <input id="login-user" placeholder="VD: hlv_tuan">
+    <label><span>🔒</span> Mật khẩu</label>
+    <input id="login-pass" type="password" placeholder="••••••">
+    <div class="auth-error" id="login-error"></div>
+    <button id="btn-login"><span>➜</span> Đăng nhập</button>
+    
+    <div class="divider">Hoặc</div>
+    <button class="btn-google" id="btn-google-login">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google"> Đăng nhập bằng Google
+    </button>
+  </div>
+
+  <div id="form-register" class="hidden">
+    <label><span>👤</span> Tên đăng nhập</label>
+    <input id="reg-user" placeholder="VD: hlv_tuan">
+    <label><span>📛</span> Tên HLV</label>
+    <input id="reg-name" placeholder="VD: HLV Tuấn">
+    <label><span>🔒</span> Mật khẩu</label>
+    <input id="reg-pass" type="password" placeholder="Tối thiểu 4 ký tự">
+    <label><span>🔒</span> Nhập lại mật khẩu</label>
+    <input id="reg-pass2" type="password" placeholder="••••••">
+    <div class="auth-error" id="reg-error"></div>
+    <button id="btn-register"><span>➜</span> Tạo tài khoản</button>
+    
+    <div class="divider">Hoặc</div>
+    <button class="btn-google" id="btn-google-register">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google"> Đăng ký bằng Google
+    </button>
+  </div>
+</div>
+
+<!-- MÀN HÌNH TẠO ĐỘI -->
+<div class="app" id="screen-setup">
+  <div class="card">
+    <h1 style="text-align:center; color:#17c964; margin-bottom:20px;">🏟️ Tạo đội bóng</h1>
+    <label>Tên đội</label>
+    <input id="inp-team" placeholder="VD: FC Sài Gòn">
+    <div class="row">
+      <div>
+        <label>Giải đấu</label>
+        <select id="inp-league" style="width:100%; padding:14px; border-radius:8px; margin-bottom:15px; border:1px solid #444;">
+          <option>V.League</option><option>Ngoại hạng Anh</option>
+        </select>
+      </div>
+      <div>
+        <label>Sơ đồ</label>
+        <select id="inp-formation" style="width:100%; padding:14px; border-radius:8px; margin-bottom:15px; border:1px solid #444;">
+          <option>4-4-2</option><option>4-3-3</option>
+        </select>
+      </div>
+    </div>
+    <button id="btn-create">Tạo đội & Vào phòng HLV →</button>
+  </div>
+</div>
+
+<!-- MÀN HÌNH CHÍNH -->
+<div class="app" id="screen-main">
+  <div class="user-bar">
+    <span>👔 HLV: <strong id="coach-display" style="color:#17c964;"></strong> · Đội: <strong id="team-display" style="color:#17c964;"></strong></span>
+    <button class="btn-ghost" id="btn-logout">Đăng xuất</button>
+  </div>
+  
+  <div class="tabs">
+    <div class="tab active" data-tab="squad">👥 Đội hình</div>
+    <div class="tab" data-tab="drills">📋 Giáo án</div>
+    <div class="tab" data-tab="eval">📝 Đánh giá</div>
+    <div class="tab" data-tab="stats">📊 Thống kê</div>
+  </div>
+
+  <div id="tab-squad" class="card">
+    <h2 id="squad-title" style="margin-bottom:15px; color:#17c964;">Đội hình</h2>
+    <div class="row">
+      <div><label>Tên cầu thủ</label><input id="p-name" placeholder="VD: Minh Quân"></div>
+      <div><label>Vị trí</label>
+        <select id="p-pos" style="width:100%; padding:14px; border-radius:8px; margin-bottom:15px; border:1px solid #444;">
+          <option>Thủ môn</option><option>Hậu vệ</option><option>Tiền vệ</option><option>Tiền đạo</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div><label>Tốc độ</label><input id="p-pace" type="number" value="70"></div>
+      <div><label>Kỹ thuật</label><input id="p-tech" type="number" value="70"></div>
+      <div><label>Thể lực</label><input id="p-stam" type="number" value="70"></div>
+    </div>
+    <button id="btn-add-player" style="margin-top:10px;">+ Thêm cầu thủ</button>
+    <div style="margin: 20px 0 10px; font-weight:bold; color:#17c964;">Danh sách</div>
+    <div id="squad-list"></div>
+  </div>
+  
+  <div id="tab-drills" class="card hidden">
+    <h2 style="margin-bottom:15px; color:#17c964;">Giao giáo án</h2>
+    <div id="drill-list"></div>
+    <button id="btn-assign" style="margin-top:10px;">Giao giáo án</button>
+    <div style="margin: 20px 0 10px; font-weight:bold; color:#17c964;">Đã giao</div>
+    <div id="assigned-list" style="color:#9ab;">Chưa có</div>
+  </div>
+  
+  <div id="tab-eval" class="card hidden">
+    <h2 style="margin-bottom:15px; color:#17c964;">Đánh giá</h2>
+    <div id="eval-list" style="color:#9ab;">Chưa có cầu thủ</div>
+    <button id="btn-save-eval" class="hidden" style="margin-top:10px;">Lưu đánh giá</button>
+  </div>
+  
+  <div id="tab-stats" class="card hidden">
+    <h2 style="margin-bottom:15px; color:#17c964;">Thống kê</h2>
+    <div class="row" id="stats-grid"></div>
+    <div style="margin: 20px 0 10px; font-weight:bold; color:#17c964;">Cầu thủ nổi bật</div>
+    <div id="top-players" style="color:#9ab;">Chưa có</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 1. NHÚNG FIREBASE SDK (Đã cấu hình) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAWDQAwmMjaThp4SpZHGY9tw7t9LkNLm7I",
+    authDomain: "web-hu.firebaseapp.com",
+    projectId: "web-hu",
+    storageBucket: "web-hu.firebasestorage.app",
+    messagingSenderId: "91931511124",
+    appId: "1:91931511124:web:005874fff25a9474a0a0c1",
+    measurementId: "G-TNFZ06JV6G"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  async function signInWithGoogle() {
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Gán user vào biến toàn cục
+      window.currentUser = { username: user.email, name: user.displayName || user.email };
+      
+      window.toast('Đăng nhập Google thành công!');
+      const saved = window.LS.getState(window.currentUser.username);
+      
+      if (saved) { 
+        window.state = saved; 
+        window.state.selectedDrills = new Set(window.state.assigned || []); 
+        if (window.state.team) { window.enterMain(); return; } 
+      }
+      
+      // Nếu chưa có đội bóng, chuyển sang màn hình tạo đội
+      document.getElementById('screen-auth').classList.add('hidden');
+      document.getElementById('screen-setup').classList.add('active');
+    } catch (error) {
+      console.error(error);
+      document.getElementById('login-error').textContent = 'Lỗi: ' + error.message;
+    }
+  }
+
+  document.getElementById('btn-google-login').onclick = signInWithGoogle;
+  document.getElementById('btn-google-register').onclick = signInWithGoogle;
+</script>
+
+<!-- 2. LOGIC GỐC CỦA BẠN (Đã thêm window. để Firebase gọi được) -->
+<script>
+window.LS = {
+  get accounts() { return JSON.parse(localStorage.getItem('hlv_accounts') || '{}'); },
+  set accounts(v) { localStorage.setItem('hlv_accounts', JSON.stringify(v)); },
+  getState(u) { return JSON.parse(localStorage.getItem('hlv_state_' + u) || 'null'); },
+  setState(u, s) { localStorage.setItem('hlv_state_' + u, JSON.stringify(s)); }
+};
+
+window.DRILLS = [
+  { id:'d1', name:'Rondo 4v2', type:'Kỹ thuật' },
+  { id:'d2', name:'Sút xa 25m', type:'Dứt điểm' },
+  { id:'d3', name:'Chạy 400m', type:'Thể lực' }
+];
+
+window.state = { team:'', coach:'', players:[], assigned:[], evaluations:[], selectedDrills: new Set(), currentEval:{} };
+window.currentUser = null;
+window.$ = id => document.getElementById(id);
+window.uid = () => Math.random().toString(36).slice(2,9);
+
+window.toast = function(msg, isErr) {
+  const t = $('toast'); t.textContent = msg; t.className = 'toast show' + (isErr ? ' error' : '');
+  setTimeout(()=>t.classList.remove('show'), 2000);
+}
+window.overall = function(p) { return Math.round((Number(p.pace)+Number(p.tech)+Number(p.stam))/3); }
+
+// Chuyển Tab
+document.querySelectorAll('.auth-tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.auth-tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
+    if (t.dataset.authtab === 'login') { $('form-login').classList.remove('hidden'); $('form-register').classList.add('hidden'); }
+    else { $('form-login').classList.add('hidden'); $('form-register').classList.remove('hidden'); }
+  };
+});
+
+// Đăng ký
+$('btn-register').onclick = () => {
+  const user = $('reg-user').value.trim().toLowerCase(), name = $('reg-name').value.trim();
+  const p1 = $('reg-pass').value, p2 = $('reg-pass2').value, err = $('reg-error'); err.textContent = '';
+  if (!user || !name) return err.textContent = 'Nhập đủ thông tin.';
+  if (p1.length < 4) return err.textContent = 'Mật khẩu tối thiểu 4 ký tự.';
+  if (p1 !== p2) return err.textContent = 'Mật khẩu không khớp.';
+  const accs = LS.accounts; if (accs[user]) return err.textContent = 'Tài khoản đã tồn tại.';
+  accs[user] = { name, pass: p1 }; LS.accounts = accs;
+  toast('Đăng ký thành công!');
+  $('reg-user').value = ''; $('reg-name').value = ''; $('reg-pass').value = ''; $('reg-pass2').value = '';
+  document.querySelector('.auth-tab[data-authtab="login"]').click();
+  $('login-user').value = user;
+};
+
+// Đăng nhập thường
+$('btn-login').onclick = () => {
+  const user = $('login-user').value.trim().toLowerCase(), pass = $('login-pass').value, err = $('login-error'); err.textContent = '';
+  const accs = LS.accounts;
+  if (!accs[user]) return err.textContent = 'Tài khoản không tồn tại.';
+  if (accs[user].pass !== pass) return err.textContent = 'Sai mật khẩu.';
+  currentUser = { username: user, name: accs[user].name };
+  const saved = LS.getState(user);
+  if (saved) { state = saved; state.selectedDrills = new Set(state.assigned || []); if (state.team) { enterMain(); return; } }
+  
+  $('screen-auth').classList.add('hidden'); 
+  $('screen-setup').classList.add('active');
+};
+
+$('btn-create').onclick = () => {
+  state.team = $('inp-team').value.trim() || 'FC Mới';
+  state.coach = currentUser.name; state.league = $('inp-league').value; state.formation = $('inp-formation').value;
+  LS.setState(currentUser.username, state); enterMain();
+};
+
+window.enterMain = function() {
+  $('screen-auth').classList.add('hidden'); $('screen-setup').classList.remove('active'); $('screen-main').classList.add('active');
+  $('coach-display').textContent = state.coach; $('team-display').textContent = state.team;
+  $('squad-title').textContent = `Đội hình ${state.team}`;
+  renderAll();
+}
+
+$('btn-logout').onclick = () => {
+  if (currentUser) LS.setState(currentUser.username, state); 
+  currentUser = null;
+  $('login-user').value = ''; $('login-pass').value = ''; $('login-error').textContent = '';
+  $('screen-main').classList.remove('active'); $('screen-auth').classList.remove('hidden');
+};
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active');
+    ['squad','drills','eval','stats'].forEach(t => $('tab-'+t).classList.add('hidden'));
+    $('tab-'+tab.dataset.tab).classList.remove('hidden');
+    renderAll();
+  };
+});
+
+$('btn-add-player').onclick = () => {
+  const name = $('p-name').value.trim(); if (!name) return toast('Nhập tên!', true);
+  state.players.push({ id: uid(), name, pos: $('p-pos').value, pace: $('p-pace').value, tech: $('p-tech').value, stam: $('p-stam').value });
+  $('p-name').value = ''; toast('Đã thêm!'); LS.setState(currentUser.username, state); renderAll();
+};
+
+window.renderAll = function() { renderSquad(); renderDrills(); renderEval(); renderStats(); }
+
+function renderSquad() {
+  const box = $('squad-list'); box.innerHTML = state.players.length ? '' : '<div style="color:#678; padding:20px; text-align:center;">Chưa có cầu thủ</div>';
+  state.players.forEach(p => {
+    box.innerHTML += `<div class="player"><div class="avatar">${p.name[0].toUpperCase()}</div><div class="pinfo"><b>${p.name}</b> (${p.pos})</div><div class="overall">${overall(p)}</div><button class="btn-ghost" style="background:#e5484d; border:none;" onclick="delPlayer('${p.id}')">Xóa</button></div>`;
+  });
+}
+window.delPlayer = (id) => { state.players = state.players.filter(p => p.id !== id); LS.setState(currentUser.username, state); renderAll(); };
+
+function renderDrills() {
+  const box = $('drill-list'); box.innerHTML = '';
+  DRILLS.forEach(d => {
+    box.innerHTML += `<label class="drill-item"><input type="checkbox" onchange="toggleDrill('${d.id}', this.checked)" ${state.selectedDrills.has(d.id)?'checked':''} style="width:20px; margin:0;"> <b>${d.name}</b></label>`;
+  });
+  const al = $('assigned-list');
+  al.innerHTML = state.assigned.length ? state.assigned.map(id => DRILLS.find(d=>d.id===id).name).join(', ') : 'Chưa có';
+}
+window.toggleDrill = (id, checked) => { if (checked) state.selectedDrills.add(id); else state.selectedDrills.delete(id); };
+
+$('btn-assign').onclick = () => {
+  if (!state.selectedDrills.size) return toast('Chọn bài tập!', true);
+  state.assigned = [...state.selectedDrills]; toast('Đã giao!'); LS.setState(currentUser.username, state); renderDrills();
+};
+
+function renderEval() {
+  const box = $('eval-list');
+  if (!state.players.length) { box.innerHTML = 'Chưa có cầu thủ'; $('btn-save-eval').classList.add('hidden'); return; }
+  box.innerHTML = ''; state.currentEval = {};
+  state.players.forEach(p => {
+    state.currentEval[p.id] = { rating: 7 };
+    box.innerHTML += `<div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:10px;"><b>${p.name}</b> <input type="number" min="1" max="10" value="7" onchange="state.currentEval['${p.id}'].rating = this.value" style="width:60px; float:right; padding:5px;"></div>`;
+  });
+  $('btn-save-eval').classList.remove('hidden');
+}
+
+$('btn-save-eval').onclick = () => {
+  state.evaluations.push({ date: new Date().toLocaleString('vi-VN'), players: state.players.map(p => ({ name: p.name, rating: Number(state.currentEval[p.id].rating) })) });
+  toast('Đã lưu!'); LS.setState(currentUser.username, state); renderStats();
+};
+
+function renderStats() {
+  $('stats-grid').innerHTML = `<div class="card" style="text-align:center;"><div style="font-size:2rem; color:#17c964; font-weight:bold;">${state.players.length}</div>Cầu thủ</div><div class="card" style="text-align:center;"><div style="font-size:2rem; color:#17c964; font-weight:bold;">${state.evaluations.length}</div>Buổi tập</div>`;
+  $('top-players').innerHTML = state.players.length ? [...state.players].sort((a,b)=>overall(b)-overall(a)).slice(0,3).map(p=>`<div class="player"><b>${p.name}</b> - Điểm: ${overall(p)}</div>`).join('') : 'Chưa có';
+}
+</script>
+</body>
+</html>
